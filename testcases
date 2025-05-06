@@ -1,0 +1,53 @@
+test case -
+
+
+1 - Database Transaction Handling: The order is created within a database transaction to ensure data integrity. If anything fails during the order creation or job dispatching, the transaction is rolled back, ensuring no incomplete data is stored.
+
+2- Asynchronous Job Processing: The order processing is handled asynchronously using a queued job (ProcessOrderJob). This job simulates order processing with a delay, updating the order status to processed.
+
+3- Error Handling: The system properly handles job failures. If the job fails (for example, due to a simulated exception), the job is saved in the failed_jobs table for later review and retry.
+ 
+
+php artisan migrate
+php artisan queue:table
+php artisan migrate
+
+
+Test the Order Creation via Web Interface:
+
+Go to the order form: http://localhost/order-form
+
+Submit the form: Enter customer name and order amount, then click Submit.
+
+The form will send a POST request to create an order, and the system will process the order via the job.
+
+Monitor the Job Execution:
+
+In a separate terminal window, run the queue worker to process jobs:
+php artisan queue:work
+
+
+Verify Order Status:
+
+After the job runs, check the order status in the database. The status should be updated to processed.
+
+Use your database manager or query the orders table to verify:
+SELECT * FROM orders WHERE customer_name = 'Jane Smith';
+
+Simulate and Handle Job Failure:
+
+To simulate a failure, modify the handle() method in ProcessOrderJob:
+public function handle(): void
+{
+    throw new \Exception("Simulated failure for testing.");
+}
+Submit the order again.
+
+
+The job will fail, and you can check the failed jobs table:
+php artisan queue:failed
+
+You can retry the failed job with:
+php artisan queue:retry [job-id]
+
+
